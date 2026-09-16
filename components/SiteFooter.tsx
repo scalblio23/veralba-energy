@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { BrandLogo } from "./BrandLogo";
 import { site } from "@/lib/site";
 import styles from "./SiteFooter.module.css";
 
@@ -8,17 +8,10 @@ export function SiteFooter() {
       <div className="container">
         <div className={styles.top}>
           <div className={styles.brand}>
-            <Image
-              className={styles.logo}
-              src="/assets/solar-selector-logo.png"
-              alt="Solar Selector"
-              width={1000}
-              height={291}
-              sizes="220px"
-            />
+            <BrandLogo className={styles.logo} />
           </div>
           <p className={styles.about}>
-            Solar Selector helps you find a great solar installer by matching homeowners with vetted,
+            {site.name} helps you find a great solar installer by matching homeowners with vetted,
             industry-recognised solar experts.
           </p>
           <div className={styles.contact}>
@@ -35,7 +28,7 @@ export function SiteFooter() {
         <div className={styles.disclaimer}>
           <p>*Based on the installation of a 13.2kW solar system for a Australian home in a CER Zone 1 postcode.</p>
           <p>
-            Solar Selector operates as a referral service for solar and battery solutions, partnering with solar
+            {site.name} operates as a referral service for solar and battery solutions, partnering with solar
             companies to offer guidance on selecting the right solar products for your needs. The content provided
             on this website serves solely for informational purposes and should not be considered as professional
             advice. By accessing our website, you agree to our{" "}
@@ -51,7 +44,7 @@ export function SiteFooter() {
         </div>
 
         <div className={styles.bottom}>
-          <p>© Copyright Solar Selector {site.copyrightYear} · All Rights Reserved</p>
+          <p>© Copyright {site.name} {site.copyrightYear} · All Rights Reserved</p>
           <p className={styles.legalLinks}>
             <a href={site.privacyPolicyUrl} target="_blank" rel="noopener noreferrer">
               Privacy Policy

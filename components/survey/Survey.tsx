@@ -15,6 +15,7 @@ import {
   type FieldErrors,
   type StepId,
 } from "@/lib/survey";
+import { trackPixelEvent } from "@/lib/pixel";
 import { ChoiceQuestion } from "./ChoiceQuestion";
 import { FieldQuestion } from "./FieldQuestion";
 import { RenterMessage } from "./RenterMessage";
@@ -117,6 +118,11 @@ export function Survey() {
         section.scrollIntoView({ block: "start", behavior: reduceMotion ? "auto" : "smooth" });
       }
     }
+  }, [step]);
+
+  // Report a completed survey to the Meta Pixel as a standard Lead event.
+  useEffect(() => {
+    if (step === "success") trackPixelEvent("Lead");
   }, [step]);
 
   // Focus the first invalid control after validation errors render.

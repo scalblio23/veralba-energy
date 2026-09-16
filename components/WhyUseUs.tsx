@@ -2,17 +2,18 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { site } from "@/lib/site";
 import { Modal } from "./Modal";
-import styles from "./WhyUseSolarSelector.module.css";
+import styles from "./WhyUseUs.module.css";
 
-export function WhyUseSolarSelector() {
+export function WhyUseUs() {
   const [isModalOpen, setModalOpen] = useState(false);
 
   return (
     <section className={styles.section} aria-labelledby="why-heading">
       <div className="container">
         <h2 id="why-heading" className={styles.heading}>
-          Why Use Solar Selector?
+          Why Use {site.name}?
         </h2>
 
         <div className={styles.grid}>

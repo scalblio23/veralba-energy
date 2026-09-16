@@ -1,19 +1,12 @@
 import Image from "next/image";
+import { BrandLogo } from "./BrandLogo";
 import styles from "./SiteHeader.module.css";
 
 export function SiteHeader() {
   return (
     <header className={styles.header}>
       <div className={`container ${styles.inner}`}>
-        <Image
-          className={styles.logo}
-          src="/assets/solar-selector-logo.png"
-          alt="Solar Selector"
-          width={1000}
-          height={291}
-          priority
-          sizes="155px"
-        />
+        <BrandLogo className={styles.logo} />
         <Image
           className={styles.badge}
           src="/assets/secure-ssl-badge.png"

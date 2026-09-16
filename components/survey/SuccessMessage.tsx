@@ -1,3 +1,4 @@
+import { site } from "@/lib/site";
 import { formatMobile, getActiveAnswers, type Answers } from "@/lib/survey";
 import styles from "./Survey.module.css";
 
@@ -35,7 +36,7 @@ export function SuccessMessage({ answers, onRestart }: SuccessMessageProps) {
   return (
     <div className={`${styles.message} ${styles.success}`}>
       <svg className={styles.successIcon} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-        <circle cx="32" cy="32" r="30" fill="#1ae2c2" />
+        <circle cx="32" cy="32" r="30" fill="#ffe600" />
         <path d="M19 33.5 28 42l17-19" fill="none" stroke="#000033" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <p className={styles.demoBadge}>Demo complete · Nothing was submitted</p>
@@ -60,7 +61,7 @@ export function SuccessMessage({ answers, onRestart }: SuccessMessageProps) {
       </div>
 
       <p className={styles.privacyNote}>
-        Your details stayed in this browser tab. They have not been sent to Solar Selector, installers or any other
+        Your details stayed in this browser tab. They have not been sent to {site.name}, installers or any other
         service, and they are cleared when you refresh or leave the page.
       </p>
 

@@ -1,7 +1,7 @@
 import { Survey } from "@/components/survey/Survey";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { WhyUseSolarSelector } from "@/components/WhyUseSolarSelector";
+import { WhyUseUs } from "@/components/WhyUseUs";
 
 export default function HomePage() {
   return (
@@ -12,7 +12,7 @@ export default function HomePage() {
       <SiteHeader />
       <main>
         <Survey />
-        <WhyUseSolarSelector />
+        <WhyUseUs />
       </main>
       <SiteFooter />
     </>

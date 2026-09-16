@@ -3,7 +3,8 @@ import userEvent from "@testing-library/user-event";
 import type { ImgHTMLAttributes } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Survey, AUTO_ADVANCE_DELAY_MS } from "@/components/survey/Survey";
-import { WhyUseSolarSelector } from "@/components/WhyUseSolarSelector";
+import { WhyUseUs } from "@/components/WhyUseUs";
+import { trackPixelEvent } from "@/lib/pixel";
 
 vi.mock("next/image", () => ({
   default: (props: ImgHTMLAttributes<HTMLImageElement> & { priority?: boolean }) => {
@@ -95,7 +96,7 @@ describe("Survey", () => {
     await user().type(screen.getByLabelText("Postcode"), "4000{Enter}");
     await choose("Rent");
 
-    expect(heading()).toHaveTextContent("I'm sorry, currently Solar Selector can only assist homeowners.");
+    expect(heading()).toHaveTextContent("I'm sorry, currently Veralba Solar can only assist homeowners.");
     expect(screen.getByRole("link", { name: /Energy Made Easy/ })).toHaveAttribute("target", "_blank");
     expect(screen.queryByRole("button", { name: "Next" })).not.toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
@@ -188,24 +189,53 @@ describe("Survey", () => {
 
   it("completes the no-solar path without the existing system questions", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
-    render(<Survey />);
-    await completeToContact("No");
-    await user().type(screen.getByLabelText("Best email address"), "alex@example.com");
-    await user().type(screen.getByLabelText("Mobile phone number"), "0412 345 678{Enter}");
-    expect(progressValue()).toBe(91);
-    await user().type(screen.getByLabelText("6-digit verification code"), "123456{Enter}");
+    const fbq = vi.fn();
+    window.fbq = fbq;
+    try {
+      render(<Survey />);
+      await completeToContact("No");
+      await user().type(screen.getByLabelText("Best email address"), "alex@example.com");
+      await user().type(screen.getByLabelText("Mobile phone number"), "0412 345 678{Enter}");
+      expect(progressValue()).toBe(91);
+      expect(fbq).not.toHaveBeenCalled();
+      await user().type(screen.getByLabelText("6-digit verification code"), "123456{Enter}");
 
-    expect(heading()).toHaveTextContent("Your eligibility request is ready.");
-    expect(screen.queryByText("Existing system age")).not.toBeInTheDocument();
-    expect(screen.queryByText("Reason for enquiry")).not.toBeInTheDocument();
-    expect(fetchSpy).not.toHaveBeenCalled();
+      expect(heading()).toHaveTextContent("Your eligibility request is ready.");
+      expect(screen.queryByText("Existing system age")).not.toBeInTheDocument();
+      expect(screen.queryByText("Reason for enquiry")).not.toBeInTheDocument();
+      expect(fetchSpy).not.toHaveBeenCalled();
+
+      // The Meta Pixel Lead event fires exactly once when the survey is completed.
+      expect(fbq).toHaveBeenCalledTimes(1);
+      expect(fbq).toHaveBeenCalledWith("track", "Lead", undefined);
+    } finally {
+      delete window.fbq;
+    }
+  });
+});
+
+describe("Meta Pixel helper", () => {
+  it("is a no-op when the pixel has not loaded", () => {
+    delete window.fbq;
+    expect(trackPixelEvent("Lead")).toBe(false);
+  });
+
+  it("forwards events to fbq when it is available", () => {
+    const fbq = vi.fn();
+    window.fbq = fbq;
+    try {
+      expect(trackPixelEvent("Lead", { content_name: "solar-eligibility" })).toBe(true);
+      expect(fbq).toHaveBeenCalledWith("track", "Lead", { content_name: "solar-eligibility" });
+    } finally {
+      delete window.fbq;
+    }
   });
 });
 
 describe("No Net Cost Solar modal", () => {
   it("opens from More, traps focus, and closes with Escape", async () => {
     const user = userEvent.setup();
-    render(<WhyUseSolarSelector />);
+    render(<WhyUseUs />);
     const more = screen.getByRole("button", { name: "More about No Net Cost Solar" });
 
     await user.click(more);
@@ -227,7 +257,7 @@ describe("No Net Cost Solar modal", () => {
 
   it("closes from the Close button", async () => {
     const user = userEvent.setup();
-    render(<WhyUseSolarSelector />);
+    render(<WhyUseUs />);
     await user.click(screen.getByRole("button", { name: "More about No Net Cost Solar" }));
     await user.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

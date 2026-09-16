@@ -1,8 +1,8 @@
-# Solar Selector Landing Page
+# Veralba Solar Landing Page
 
-A responsive Next.js (App Router) and TypeScript recreation of the Solar Selector "Check Your Eligibility" landing page. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, the No Net Cost Solar modal, and a local-only demo verification step.
+A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for Veralba Solar. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, the No Net Cost Solar modal, and a local-only demo verification step.
 
-> **Frontend demo only.** Nothing you enter leaves the browser. There is no lead submission, SMS, webhook, tracking script, TrustedForm, Google Maps key or any other credential. Answers live in React state and are cleared on refresh.
+> **Frontend demo only.** Nothing you enter leaves the browser. There is no lead submission, SMS, webhook, TrustedForm, Google Maps key or any other credential. Answers live in React state and are cleared on refresh. The only third-party script is the Meta Pixel (see below).
 
 ## Requirements
 
@@ -56,22 +56,27 @@ app/
   layout.tsx          Poppins via next/font, metadata
   page.tsx            Page composition
   globals.css         Design tokens, reset, Bootstrap-width container
-  icon.png            Favicon
+  icon.svg            Favicon (navy tile with a yellow sun)
 components/
+  BrandLogo.tsx       Inline SVG wordmark (white "Veralba", yellow "Solar")
   SiteHeader.tsx      Navy bar with logo and SSL badge
-  WhyUseSolarSelector.tsx  Benefits section and "More" modal trigger
+  WhyUseUs.tsx        Benefits section and "More" modal trigger
   Modal.tsx           Accessible dialog (focus trap, Escape, inert background, focus restore)
   SiteFooter.tsx      Footer, disclaimer, legal links
   survey/             Survey state machine UI and step components
 lib/
   survey.ts           Step definitions, branching, progress and validation (pure functions)
-  site.ts             Contact email and external links
+  site.ts             Brand name, contact email and legal links
 public/assets/        Local images with descriptive kebab-case names
 tests/                Vitest unit and integration tests
 docs/reference/       Source screenshots used for visual matching
 ```
 
-To change the demo code, edit `DEMO_OTP` in `lib/survey.ts`. To change the contact email or the Privacy, Terms and energy assistance links, edit `lib/site.ts`.
+## Meta Pixel
+
+`components/MetaPixel.tsx` loads the Meta Pixel base code in the root layout and fires the standard `PageView` on every load. When the survey reaches the success screen, `components/survey/Survey.tsx` calls `trackPixelEvent("Lead")` from `lib/pixel.ts`, which fires the standard `Lead` event. The helper is a no-op if the pixel is blocked or not loaded. The pixel ID lives in `lib/site.ts` as `metaPixelId`; set it to an empty string to disable the pixel entirely.
+
+To change the demo code, edit `DEMO_OTP` in `lib/survey.ts`. To change the brand name, contact email or the Privacy, Terms and energy assistance links, edit `lib/site.ts`. Brand colours are CSS variables at the top of `app/globals.css` (`--color-accent` is the yellow).
 
 ## Deployment (Vercel)
 
@@ -94,5 +99,5 @@ The page is statically prerendered. `next.config.ts` adds basic security headers
 - Native radio inputs inside a labelled `radiogroup`, with visible focus rings on cards, inputs and buttons
 - Focus moves to each new question's heading, and the progress bar exposes `aria-valuenow` and a text value
 - Modal uses `role="dialog"` and `aria-modal`, traps focus, closes with Escape, the backdrop or either close button, and returns focus to **More**
-- Button text and links on light backgrounds use navy or a darker teal (`#007a68`) so they meet WCAG AA contrast. Turquoise stays the brand accent.
+- Button text and links on light backgrounds use navy or a dark gold (`#6b5800`) so they meet WCAG AA contrast. Yellow (`#ffe600`) stays the brand accent.
 - Respects `prefers-reduced-motion`

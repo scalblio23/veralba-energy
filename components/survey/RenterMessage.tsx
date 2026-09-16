@@ -5,7 +5,7 @@ export function RenterMessage() {
   return (
     <div className={styles.message}>
       <h2 className={styles.questionTitle} tabIndex={-1} data-step-heading>
-        I&apos;m sorry, currently Solar Selector can only assist <strong>homeowners</strong>.
+        I&apos;m sorry, currently {site.name} can only assist <strong>homeowners</strong>.
       </h2>
       <p className={styles.questionDescription}>
         If you&apos;re renting and want to see if you can save hundreds on your electricity bills, we recommend you
