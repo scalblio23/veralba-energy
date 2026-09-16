@@ -1,0 +1,124 @@
+.footer {
+  background-color: var(--color-footer);
+  color: #ffffff;
+}
+
+.footer :focus-visible {
+  outline-color: var(--color-accent);
+}
+
+.top {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 30px;
+  padding: 80px 20px 60px;
+  text-align: center;
+}
+
+.brand {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.logo {
+  display: block;
+  width: 220px;
+  height: auto;
+}
+
+.about,
+.light {
+  font-weight: 300;
+}
+
+.about {
+  margin-block: 30px;
+}
+
+.contactHeading {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.email {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.disclaimer {
+  margin-inline: -15px;
+  padding: 20px 20px calc(20px + 1rem);
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 2em;
+  text-align: center;
+}
+
+.disclaimer p {
+  margin: 0;
+}
+
+.disclaimer p + p {
+  margin-top: 2em;
+}
+
+.accentLink {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.bottom {
+  display: grid;
+  grid-template-columns: 1fr;
+  padding: 20px;
+  font-size: 12px;
+  font-weight: 300;
+  text-align: center;
+}
+
+.bottom p {
+  margin-bottom: 1rem;
+}
+
+.legalLinks,
+.legalLinks a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.legalLinks a:hover {
+  text-decoration: underline;
+}
+
+@media (min-width: 576px) {
+  .top {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .about {
+    margin-block: 0 1rem;
+  }
+
+  .bottom {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 30px;
+  }
+}
+
+@media (min-width: 750px) {
+  .top,
+  .bottom {
+    text-align: left;
+  }
+
+  .brand {
+    justify-content: flex-start;
+  }
+
+  .bottom p:last-child {
+    text-align: right;
+  }
+}
