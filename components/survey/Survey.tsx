@@ -17,11 +17,11 @@ import {
 } from "@/lib/survey";
 import { submitLead } from "@/lib/lead";
 import { trackPixelEvent } from "@/lib/pixel";
+import { site } from "@/lib/site";
 import { ChoiceQuestion } from "./ChoiceQuestion";
 import { FieldQuestion } from "./FieldQuestion";
 import { RenterMessage } from "./RenterMessage";
 import { SuccessMessage } from "./SuccessMessage";
-import { VerifyStep } from "./VerifyStep";
 import styles from "./Survey.module.css";
 
 /** Delay between choosing a card and moving on, so the selection is visible. */
@@ -245,16 +245,6 @@ export function Survey() {
 
             {step === "renter" && <RenterMessage />}
 
-            {step === "verify" && (
-              <VerifyStep
-                mobile={answers.mobile ?? ""}
-                code={answers.otp ?? ""}
-                error={errors.otp}
-                inputId={fieldId("otp")}
-                onChange={(value) => setAnswer("otp", value)}
-              />
-            )}
-
             {step === "success" && <SuccessMessage answers={answers} onRestart={restart} />}
           </div>
 
@@ -265,7 +255,7 @@ export function Survey() {
                   type="submit"
                   className={`${styles.nextButton} ${isStepValid ? "" : styles.inactive}`}
                 >
-                  Next
+                  {(definition.kind === "fields" && definition.submitLabel) || "Next"}
                 </button>
               )}
               {canGoBack && (
@@ -274,6 +264,21 @@ export function Survey() {
                 </button>
               )}
             </div>
+          )}
+
+          {step === "contact" && (
+            <p className={styles.consent}>
+              By clicking the above I understand and accept {site.name}&apos;s{" "}
+              <a href={site.privacyPolicyUrl} target="_blank" rel="noopener noreferrer">
+                Privacy Policy
+              </a>{" "}
+              and{" "}
+              <a href={site.termsUrl} target="_blank" rel="noopener noreferrer">
+                Terms of Use
+              </a>
+              . You provide consent for {site.name} or one of our partners to contact you to discuss your options for
+              solar and/or battery storage. We may receive a fee from our partners when you choose to use our service.
+            </p>
           )}
         </form>
       </div>

@@ -44,7 +44,7 @@ interface LeadMeta {
 /**
  * Build the webhook payload from the survey answers. Only answers on the
  * active path are included (abandoned branches are sent as empty strings) and
- * the verification code is never sent.
+ * nothing outside the known lead fields is sent.
  */
 export function buildLeadPayload(answers: Answers, meta: LeadMeta): LeadPayload {
   const active = getActiveAnswers(answers);

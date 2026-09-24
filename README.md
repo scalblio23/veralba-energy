@@ -1,8 +1,8 @@
 # Veralba Solar Landing Page
 
-A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for Veralba Solar. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, the No Net Cost Solar modal, and a local-only demo verification step.
+A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for Veralba Solar. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, and the No Net Cost Solar modal. Completed surveys go straight to the client lead list.
 
-> Completed surveys are sent to the client lead list through a Make webhook (see **Lead submission** below). SMS verification is still a local demo: no text message is sent. There is no TrustedForm or Google Maps key. The only third-party script is the Meta Pixel (see below).
+> Completed surveys are sent to the client lead list through a Make webhook (see **Lead submission** below). There is no TrustedForm or Google Maps key. The only third-party script is the Meta Pixel (see below).
 
 ## Requirements
 
@@ -29,7 +29,7 @@ Open http://localhost:3000.
 | `npm run typecheck` | `tsc --noEmit`                                   |
 | `npm test`          | Vitest unit and integration tests (jsdom)        |
 
-## Survey demo
+## Survey flow
 
 1. **Postcode**: a 4-digit postcode (for example `2000`). Press Enter or **Next**.
 2. **Do you own your home?**
@@ -39,14 +39,14 @@ Open http://localhost:3000.
    - **Yes** adds _How old is your existing solar system?_ and _Why are you interested in solar?_
    - **No** / **Solar Hot Water** skip straight to the bill question.
 4. Quarterly bill, home age, roof type and roof shading.
-5. Address (street, suburb/city, postcode; the postcode is pre-filled from step 1), then first and last name, then email and an Australian mobile number starting with `04`.
-6. **Demo verification**: no text message is sent. Enter **`123456`** and choose **See If I Qualify** to reach the success screen. It summarises the answers from the active path only.
+5. Address (street, suburb/city, postcode; the postcode is pre-filled from step 1), then first and last name.
+6. Email and an Australian mobile number starting with `04`, with the consent copy. **See If I Qualify** submits the lead straight away (there is no SMS verification) and shows the success screen, which summarises the answers from the active path only.
 
 Behaviour notes:
 
 - Choosing a card selects it and moves on automatically after a short pause. Arrow keys move between options without advancing. Enter, Space or **Next** confirms.
 - **Previous** keeps every answer. If you change a branching answer, the path, progress bar and summary all follow the new branch.
-- Progress is `completed questions / questions on the active path`: 11 questions without existing solar, 13 with it. It reaches 100% on the success and renter screens.
+- Progress is `completed questions / questions on the active path`: 10 questions without existing solar, 12 with it. It reaches 100% on the success and renter screens.
 - Validation messages appear inline, are linked with `aria-describedby`, and the first invalid control gets focus.
 
 ## Project structure
@@ -76,7 +76,7 @@ docs/reference/       Source screenshots used for visual matching
 
 ## Lead submission
 
-When a visitor reaches the success screen, `components/survey/Survey.tsx` calls `submitLead` from `lib/lead.ts` once. It posts the answers on the active path (never the verification code) to the site's own `/api/lead` route, with a `submissionId`, `submittedAt`, `pageUrl` and `source` of `veralba-solar-landing-page`. The mobile is formatted as `0412 345 678` and the email is lower-cased.
+When a visitor reaches the success screen, `components/survey/Survey.tsx` calls `submitLead` from `lib/lead.ts` once. It posts the answers on the active path to the site's own `/api/lead` route, with a `submissionId`, `submittedAt`, `pageUrl` and `source` of `veralba-solar-landing-page`. The mobile is formatted as `0412 345 678` and the email is lower-cased.
 
 `app/api/lead/route.ts` keeps only the known fields, requires `submissionId`, `firstName`, `email` and `mobile`, and forwards the lead to Make. The browser never sees the webhook URL, and a failed submission never breaks the success screen.
 
@@ -88,7 +88,7 @@ The webhook URL is built in to the route. To send leads somewhere else, set the 
 
 `components/MetaPixel.tsx` loads the Meta Pixel base code in the root layout and fires the standard `PageView` on every load. When the survey reaches the success screen, `components/survey/Survey.tsx` calls `trackPixelEvent("Lead")` from `lib/pixel.ts`, which fires the standard `Lead` event. The helper is a no-op if the pixel is blocked or not loaded. The pixel ID lives in `lib/site.ts` as `metaPixelId`; set it to an empty string to disable the pixel entirely.
 
-To change the demo code, edit `DEMO_OTP` in `lib/survey.ts`. To change the brand name, contact email or the Privacy, Terms and energy assistance links, edit `lib/site.ts`. Brand colours are CSS variables at the top of `app/globals.css` (`--color-accent` is the yellow).
+To change the brand name, contact email or the Privacy, Terms and energy assistance links, edit `lib/site.ts`. Brand colours are CSS variables at the top of `app/globals.css` (`--color-accent` is the yellow).
 
 ## Deployment (Vercel)
 

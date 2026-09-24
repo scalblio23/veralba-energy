@@ -23,11 +23,10 @@ const answers: Answers = {
   lastName: "Lee",
   email: "Sam@Example.com",
   mobile: "+61412345678",
-  otp: "123456",
 };
 
 describe("buildLeadPayload", () => {
-  it("sends active-path answers, normalised, without the OTP", () => {
+  it("sends active-path answers, normalised", () => {
     const payload = buildLeadPayload(answers, meta);
     expect(payload).toMatchObject({
       ...meta,
@@ -38,15 +37,14 @@ describe("buildLeadPayload", () => {
       email: "sam@example.com",
       mobile: "0412 345 678",
     });
-    expect(payload).not.toHaveProperty("otp");
   });
 });
 
 describe("sanitiseLead", () => {
   it("drops unknown keys and non-string values", () => {
-    const lead = sanitiseLead({ ...buildLeadPayload(answers, meta), otp: "123456", bill: 5 });
+    const lead = sanitiseLead({ ...buildLeadPayload(answers, meta), extra: "ignored", bill: 5 });
     expect(lead).not.toBeNull();
-    expect(lead).not.toHaveProperty("otp");
+    expect(lead).not.toHaveProperty("extra");
     expect(lead?.bill).toBe("");
   });
 
