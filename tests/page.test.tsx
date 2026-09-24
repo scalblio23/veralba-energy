@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ImgHTMLAttributes } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Survey, AUTO_ADVANCE_DELAY_MS } from "@/components/survey/Survey";
 import { WhyUseUs } from "@/components/WhyUseUs";
 import { trackPixelEvent } from "@/lib/pixel";
@@ -24,8 +24,16 @@ function heading() {
 }
 
 describe("Survey", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
+    fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   const user = () => userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
@@ -188,7 +196,6 @@ describe("Survey", () => {
   });
 
   it("completes the no-solar path without the existing system questions", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch");
     const fbq = vi.fn();
     window.fbq = fbq;
     try {
@@ -198,12 +205,37 @@ describe("Survey", () => {
       await user().type(screen.getByLabelText("Mobile phone number"), "0412 345 678{Enter}");
       expect(progressValue()).toBe(91);
       expect(fbq).not.toHaveBeenCalled();
+      expect(fetchMock).not.toHaveBeenCalled();
       await user().type(screen.getByLabelText("6-digit verification code"), "123456{Enter}");
 
       expect(heading()).toHaveTextContent("Your eligibility request is ready.");
       expect(screen.queryByText("Existing system age")).not.toBeInTheDocument();
       expect(screen.queryByText("Reason for enquiry")).not.toBeInTheDocument();
-      expect(fetchSpy).not.toHaveBeenCalled();
+
+      // The completed survey is posted to the lead route exactly once, without the OTP.
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe("/api/lead");
+      expect(init.method).toBe("POST");
+      const payload = JSON.parse(init.body as string);
+      expect(payload).toMatchObject({
+        postcode: "2000",
+        homeowner: "Own",
+        existingSolar: "No",
+        systemAge: "",
+        reason: "",
+        bill: "$600 - $900",
+        street: "1 George Street",
+        suburb: "Sydney",
+        addressPostcode: "2000",
+        firstName: "Alex",
+        lastName: "Taylor",
+        email: "alex@example.com",
+        mobile: "0412 345 678",
+        source: "veralba-solar-landing-page",
+      });
+      expect(payload.submissionId).toEqual(expect.any(String));
+      expect(payload).not.toHaveProperty("otp");
 
       // The Meta Pixel Lead event fires exactly once when the survey is completed.
       expect(fbq).toHaveBeenCalledTimes(1);

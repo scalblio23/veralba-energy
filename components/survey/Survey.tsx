@@ -15,6 +15,7 @@ import {
   type FieldErrors,
   type StepId,
 } from "@/lib/survey";
+import { submitLead } from "@/lib/lead";
 import { trackPixelEvent } from "@/lib/pixel";
 import { ChoiceQuestion } from "./ChoiceQuestion";
 import { FieldQuestion } from "./FieldQuestion";
@@ -87,6 +88,7 @@ export function Survey() {
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingFocus = useRef<string | null>(null);
   const previousStep = useRef<StepId>(step);
+  const leadSubmitted = useRef(false);
 
   const definition = STEPS[step];
   const progress = getProgress(step, answers);
@@ -124,6 +126,13 @@ export function Survey() {
   useEffect(() => {
     if (step === "success") trackPixelEvent("Lead");
   }, [step]);
+
+  // Send the completed survey to the client lead list once per completion.
+  useEffect(() => {
+    if (step !== "success" || leadSubmitted.current) return;
+    leadSubmitted.current = true;
+    void submitLead(answers);
+  }, [step, answers]);
 
   // Focus the first invalid control after validation errors render.
   useEffect(() => {
@@ -176,6 +185,7 @@ export function Survey() {
 
   const restart = useCallback(() => {
     cancelAdvance();
+    leadSubmitted.current = false;
     dispatch({ type: "restart" });
   }, [cancelAdvance]);
 
