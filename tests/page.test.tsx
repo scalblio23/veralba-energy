@@ -96,7 +96,7 @@ describe("Survey", () => {
     await user().type(screen.getByLabelText("Postcode"), "4000{Enter}");
     await choose("Rent");
 
-    expect(heading()).toHaveTextContent("I'm sorry, currently Veralba Solar can only assist homeowners.");
+    expect(heading()).toHaveTextContent("I'm sorry, currently SolarCheck can only assist homeowners.");
     expect(screen.getByRole("link", { name: /Energy Made Easy/ })).toHaveAttribute("target", "_blank");
     expect(screen.queryByRole("button", { name: "Next" })).not.toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
