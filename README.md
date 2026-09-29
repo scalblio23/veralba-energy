@@ -1,8 +1,8 @@
 # Veralba Solar Landing Page
 
-A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for Veralba Solar. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, the No Net Cost Solar modal, and a success screen.
+A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for Veralba Solar. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, and the No Net Cost Solar modal. Completed surveys go straight to the client lead list.
 
-> **Frontend demo only.** Nothing you enter leaves the browser. There is no lead submission, SMS verification, webhook, TrustedForm, Google Maps key or any other credential. Answers live in React state and are cleared on refresh. The only third-party script is the Meta Pixel (see below).
+> Completed surveys are sent to the client lead list through a Make webhook (see **Lead submission** below). There is no TrustedForm or Google Maps key. The only third-party script is the Meta Pixel (see below).
 
 ## Requirements
 
@@ -29,7 +29,7 @@ Open http://localhost:3000.
 | `npm run typecheck` | `tsc --noEmit`                                   |
 | `npm test`          | Vitest unit and integration tests (jsdom)        |
 
-## Survey demo
+## Survey flow
 
 1. **Postcode**: a 4-digit postcode (for example `2000`). Press Enter or **Next**.
 2. **Do you own your home?**
@@ -39,8 +39,8 @@ Open http://localhost:3000.
    - **Yes** adds _How old is your existing solar system?_ and _Why are you interested in solar?_
    - **No** / **Solar Hot Water** skip straight to the bill question.
 4. Quarterly bill, home age, roof type and roof shading.
-5. Address (street, suburb/city, postcode; the postcode is pre-filled from step 1), then first and last name, then email and an Australian mobile number starting with `04`.
-6. Choose **See If I Qualify** on the contact question to go straight to the thank-you screen. There is no SMS verification. The thank-you screen summarises the answers from the active path only.
+5. Address (street, suburb/city, postcode; the postcode is pre-filled from step 1), then first and last name.
+6. Email and an Australian mobile number starting with `04`, with the consent copy. **See If I Qualify** submits the lead straight away (there is no SMS verification) and shows the success screen, which summarises the answers from the active path only.
 
 Behaviour notes:
 
@@ -64,13 +64,25 @@ components/
   Modal.tsx           Accessible dialog (focus trap, Escape, inert background, focus restore)
   SiteFooter.tsx      Footer, disclaimer, legal links
   survey/             Survey state machine UI and step components
+app/api/lead/         Route that forwards completed surveys to the Make webhook
 lib/
   survey.ts           Step definitions, branching, progress and validation (pure functions)
   site.ts             Brand name, contact email and legal links
+  lead.ts             Lead payload, sanitising and submission
 public/assets/        Local images with descriptive kebab-case names
 tests/                Vitest unit and integration tests
 docs/reference/       Source screenshots used for visual matching
 ```
+
+## Lead submission
+
+When a visitor reaches the success screen, `components/survey/Survey.tsx` calls `submitLead` from `lib/lead.ts` once. It posts the answers on the active path to the site's own `/api/lead` route, with a `submissionId`, `submittedAt`, `pageUrl` and `source` of `veralba-solar-landing-page`. The mobile is formatted as `0412 345 678` and the email is lower-cased.
+
+`app/api/lead/route.ts` keeps only the known fields, requires `submissionId`, `firstName`, `email` and `mobile`, and forwards the lead to Make. The browser never sees the webhook URL, and a failed submission never breaks the success screen.
+
+On the Make side, the scenario **77 - Veralba Solar - Website Leads** receives the webhook, skips any `submissionId` already in column U, and appends a row to the **77 - Veralba Solar** tab of the **CLIENT LEAD LIST - Tracker** Google Sheet. Columns: date received, postcode, home ownership, existing solar, system age, reason, quarterly bill, home age, roof type, shading, street, suburb, address postcode, first name, last name, email, mobile, page URL, submitted at (UTC), source, submission ID, stage and notes.
+
+The webhook URL is built in to the route. To send leads somewhere else, set the `MAKE_WEBHOOK_URL` environment variable in Vercel.
 
 ## Meta Pixel
 
@@ -82,7 +94,7 @@ To change the brand name, contact email or the Privacy, Terms and energy assista
 
 1. Push the repository to GitHub.
 2. In Vercel, choose **Add New → Project** and import the repository. The Next.js preset is detected automatically; the defaults `npm install` / `npm run build` are correct.
-3. Deploy. No environment variables are required.
+3. Deploy. No environment variables are required (`MAKE_WEBHOOK_URL` optionally overrides the lead webhook).
 
 Or with the CLI:
 
@@ -91,7 +103,7 @@ npx vercel        # preview
 npx vercel --prod # production
 ```
 
-The page is statically prerendered. `next.config.ts` adds basic security headers. `robots` is set to `noindex` because this is a demo build; remove that from `app/layout.tsx` for a real launch.
+The page is statically prerendered; `/api/lead` runs as a serverless function. `next.config.ts` adds basic security headers. `robots` is set to `noindex` because this is a demo build; remove that from `app/layout.tsx` for a real launch.
 
 ## Accessibility
 

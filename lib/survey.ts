@@ -79,6 +79,8 @@ export interface FieldStep {
   title: StepTitle;
   description?: string;
   fields: TextField[];
+  /** Label for the submit button, when it should read differently from "Next". */
+  submitLabel?: string;
 }
 
 export interface MessageStep {
@@ -266,6 +268,8 @@ export const STEPS: Record<StepId, Step> = {
     kind: "fields",
     id: "contact",
     title: { lead: "How can we", emphasis: "reach you?" },
+    description: "So our solar experts can contact you with your results.",
+    submitLabel: "See If I Qualify",
     fields: [
       {
         key: "email",

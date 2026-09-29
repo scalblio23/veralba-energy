@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ImgHTMLAttributes } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Survey, AUTO_ADVANCE_DELAY_MS } from "@/components/survey/Survey";
 import { WhyUseUs } from "@/components/WhyUseUs";
 import { trackPixelEvent } from "@/lib/pixel";
@@ -24,8 +24,16 @@ function heading() {
 }
 
 describe("Survey", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
+    fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   const user = () => userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
@@ -39,10 +47,6 @@ describe("Survey", () => {
 
   async function next() {
     await user().click(screen.getByRole("button", { name: "Next" }));
-  }
-
-  async function qualify() {
-    await user().click(screen.getByRole("button", { name: "See If I Qualify" }));
   }
 
   async function completeToContact(existingSolar: "Yes" | "No") {
@@ -147,30 +151,32 @@ describe("Survey", () => {
     expect(screen.getByRole("radio", { name: "Rent" })).toBeChecked();
   });
 
-  it("completes the existing-solar path straight from the contact step", async () => {
+  it("completes the existing-solar path and submits straight from the contact step", async () => {
     render(<Survey />);
     await completeToContact("Yes");
 
     expect(heading()).toHaveTextContent("How can we reach you?");
-    await qualify();
+    expect(progressValue()).toBe(92);
+    expect(screen.getByText(/You provide consent/)).toBeInTheDocument();
+    const qualify = screen.getByRole("button", { name: "See If I Qualify" });
+    await user().click(qualify);
     expect(screen.getByText("Please enter your email address.")).toBeInTheDocument();
     expect(screen.getByText("Please enter your mobile number.")).toBeInTheDocument();
 
     await user().type(screen.getByLabelText("Best email address"), "alex@example");
     await user().type(screen.getByLabelText("Mobile phone number"), "0212345678");
-    await qualify();
+    await user().click(qualify);
     expect(screen.getByText(/valid email address/)).toBeInTheDocument();
     expect(screen.getByText(/starting with 04/)).toBeInTheDocument();
 
     await user().type(screen.getByLabelText("Best email address"), ".com");
     await user().clear(screen.getByLabelText("Mobile phone number"));
-    expect(progressValue()).toBe(92);
-    expect(screen.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute("target", "_blank");
-    expect(screen.queryByText(/verification code/i)).not.toBeInTheDocument();
     await user().type(screen.getByLabelText("Mobile phone number"), "0412345678");
-    await qualify();
+    await user().click(qualify);
 
-    expect(heading()).toHaveTextContent("Thanks, Alex! Your eligibility request is ready.");
+    expect(heading()).toHaveTextContent("Thanks, Alex! Your eligibility request has been received.");
+    expect(screen.queryByLabelText(/verification code/i)).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(progressValue()).toBe(100);
     const summary = screen.getByRole("heading", { name: "Your answers" }).parentElement as HTMLElement;
     expect(within(summary).getByText("1 George Street, Sydney, 2000")).toBeInTheDocument();
@@ -182,7 +188,6 @@ describe("Survey", () => {
   });
 
   it("completes the no-solar path without the existing system questions", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch");
     const fbq = vi.fn();
     window.fbq = fbq;
     try {
@@ -191,12 +196,36 @@ describe("Survey", () => {
       await user().type(screen.getByLabelText("Best email address"), "alex@example.com");
       expect(progressValue()).toBe(90);
       expect(fbq).not.toHaveBeenCalled();
+      expect(fetchMock).not.toHaveBeenCalled();
       await user().type(screen.getByLabelText("Mobile phone number"), "0412 345 678{Enter}");
 
-      expect(heading()).toHaveTextContent("Your eligibility request is ready.");
+      expect(heading()).toHaveTextContent("Your eligibility request has been received.");
       expect(screen.queryByText("Existing system age")).not.toBeInTheDocument();
       expect(screen.queryByText("Reason for enquiry")).not.toBeInTheDocument();
-      expect(fetchSpy).not.toHaveBeenCalled();
+
+      // The completed survey is posted to the lead route exactly once.
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe("/api/lead");
+      expect(init.method).toBe("POST");
+      const payload = JSON.parse(init.body as string);
+      expect(payload).toMatchObject({
+        postcode: "2000",
+        homeowner: "Own",
+        existingSolar: "No",
+        systemAge: "",
+        reason: "",
+        bill: "$600 - $900",
+        street: "1 George Street",
+        suburb: "Sydney",
+        addressPostcode: "2000",
+        firstName: "Alex",
+        lastName: "Taylor",
+        email: "alex@example.com",
+        mobile: "0412 345 678",
+        source: "veralba-solar-landing-page",
+      });
+      expect(payload.submissionId).toEqual(expect.any(String));
 
       // The Meta Pixel Lead event fires exactly once when the survey is completed.
       expect(fbq).toHaveBeenCalledTimes(1);
