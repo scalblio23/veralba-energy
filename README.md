@@ -1,8 +1,8 @@
 # Veralba Solar Landing Page
 
-A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for Veralba Solar. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, the No Net Cost Solar modal, and a local-only demo verification step.
+A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for Veralba Solar. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, the No Net Cost Solar modal, and a success screen.
 
-> **Frontend demo only.** Nothing you enter leaves the browser. There is no lead submission, SMS, webhook, TrustedForm, Google Maps key or any other credential. Answers live in React state and are cleared on refresh. The only third-party script is the Meta Pixel (see below).
+> **Frontend demo only.** Nothing you enter leaves the browser. There is no lead submission, SMS verification, webhook, TrustedForm, Google Maps key or any other credential. Answers live in React state and are cleared on refresh. The only third-party script is the Meta Pixel (see below).
 
 ## Requirements
 
@@ -40,13 +40,13 @@ Open http://localhost:3000.
    - **No** / **Solar Hot Water** skip straight to the bill question.
 4. Quarterly bill, home age, roof type and roof shading.
 5. Address (street, suburb/city, postcode; the postcode is pre-filled from step 1), then first and last name, then email and an Australian mobile number starting with `04`.
-6. **Demo verification**: no text message is sent. Enter **`123456`** and choose **See If I Qualify** to reach the success screen. It summarises the answers from the active path only.
+6. Choose **See If I Qualify** on the contact question to go straight to the thank-you screen. There is no SMS verification. The thank-you screen summarises the answers from the active path only.
 
 Behaviour notes:
 
 - Choosing a card selects it and moves on automatically after a short pause. Arrow keys move between options without advancing. Enter, Space or **Next** confirms.
 - **Previous** keeps every answer. If you change a branching answer, the path, progress bar and summary all follow the new branch.
-- Progress is `completed questions / questions on the active path`: 11 questions without existing solar, 13 with it. It reaches 100% on the success and renter screens.
+- Progress is `completed questions / questions on the active path`: 10 questions without existing solar, 12 with it. It reaches 100% on the success and renter screens.
 - Validation messages appear inline, are linked with `aria-describedby`, and the first invalid control gets focus.
 
 ## Project structure
@@ -76,7 +76,7 @@ docs/reference/       Source screenshots used for visual matching
 
 `components/MetaPixel.tsx` loads the Meta Pixel base code in the root layout and fires the standard `PageView` on every load. When the survey reaches the success screen, `components/survey/Survey.tsx` calls `trackPixelEvent("Lead")` from `lib/pixel.ts`, which fires the standard `Lead` event. The helper is a no-op if the pixel is blocked or not loaded. The pixel ID lives in `lib/site.ts` as `metaPixelId`; set it to an empty string to disable the pixel entirely.
 
-To change the demo code, edit `DEMO_OTP` in `lib/survey.ts`. To change the brand name, contact email or the Privacy, Terms and energy assistance links, edit `lib/site.ts`. Brand colours are CSS variables at the top of `app/globals.css` (`--color-accent` is the yellow).
+To change the brand name, contact email or the Privacy, Terms and energy assistance links, edit `lib/site.ts`. Brand colours are CSS variables at the top of `app/globals.css` (`--color-accent` is the yellow).
 
 ## Deployment (Vercel)
 
