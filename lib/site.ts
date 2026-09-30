@@ -1,8 +1,8 @@
 /** Public site links and copy shared across the page. Update these per deployment. */
 export const site = {
-  name: "Veralba Solar",
-  // TODO: confirm the public contact address, Privacy Policy and Terms of Use URLs for Veralba.
-  contactEmail: "info@veralbaenergy.com.au",
+  name: "SolarCheck",
+  // TODO: confirm the public contact address, Privacy Policy and Terms of Use URLs for SolarCheck.
+  contactEmail: "info@solarcheck.com.au",
   privacyPolicyUrl: "/privacy-policy/",
   termsUrl: "/terms/",
   energyAssistanceUrl: "https://www.energymadeeasy.gov.au/",

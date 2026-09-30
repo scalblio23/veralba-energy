@@ -1,6 +1,6 @@
-# Veralba Solar Landing Page
+# SolarCheck Landing Page
 
-A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for Veralba Solar. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, and the No Net Cost Solar modal. Completed surveys go straight to the client lead list.
+A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for SolarCheck. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, and the No Net Cost Solar modal. Completed surveys go straight to the client lead list.
 
 > Completed surveys are sent to the client lead list through a Make webhook (see **Lead submission** below). There is no TrustedForm or Google Maps key. The only third-party script is the Meta Pixel (see below).
 
@@ -58,7 +58,7 @@ app/
   globals.css         Design tokens, reset, Bootstrap-width container
   icon.svg            Favicon (navy tile with a yellow sun)
 components/
-  BrandLogo.tsx       Inline SVG wordmark (white "Veralba", yellow "Solar")
+  BrandLogo.tsx       Inline SVG wordmark (white "Solar", yellow "Check")
   SiteHeader.tsx      Navy bar with logo and SSL badge
   WhyUseUs.tsx        Benefits section and "More" modal trigger
   Modal.tsx           Accessible dialog (focus trap, Escape, inert background, focus restore)
