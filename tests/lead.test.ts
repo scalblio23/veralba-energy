@@ -98,7 +98,7 @@ describe("POST /api/lead", () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const [url, init] = fetchSpy.mock.calls[0]!;
-    expect(url).toBe("https://hook.eu1.make.com/evhj3jrjbnbokqn1cwd4g3gkclbv9660");
+    expect(url).toBe("https://hook.eu1.make.com/tds511csbujm4nrdfxvtntlgxpfidfjr");
     expect(init?.method).toBe("POST");
     expect(JSON.parse(String(init?.body))).toMatchObject({ submissionId: "evt-1", email: "alex@example.com" });
   });

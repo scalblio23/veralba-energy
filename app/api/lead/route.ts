@@ -1,10 +1,10 @@
 import { buildLeadPayload, validateLeadAnswers, type LeadRequest } from "@/lib/lead";
 
 /**
- * Webhook of the Make scenario "77 - Veralba Solar - Website Leads", which adds
- * each lead to the "77 - Veralba Solar" Google Sheet. Override with `MAKE_WEBHOOK_URL`.
+ * Webhook of the Make scenario "81 - Elecsol Electrical - Website Leads", which adds
+ * each lead to the "81 - Elecsol Electrical - Website Leads" sheet tab. Override with `MAKE_WEBHOOK_URL`.
  */
-const DEFAULT_WEBHOOK_URL = "https://hook.eu1.make.com/evhj3jrjbnbokqn1cwd4g3gkclbv9660";
+const DEFAULT_WEBHOOK_URL = "https://hook.eu1.make.com/tds511csbujm4nrdfxvtntlgxpfidfjr";
 
 const WEBHOOK_TIMEOUT_MS = 10_000;
 
