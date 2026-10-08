@@ -1,8 +1,8 @@
 # Veralba Solar Landing Page
 
-A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for Veralba Solar. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, the No Net Cost Solar modal, and a demo verification step. Completed surveys are sent to a Make webhook (see [Lead webhook](#lead-webhook)).
+A responsive Next.js (App Router) and TypeScript "Check Your Eligibility" landing page for Veralba Solar. It includes the full multi-step survey with branching, validation, Previous navigation, path-aware progress, the No Net Cost Solar modal, and a local-only demo verification step.
 
-> **SMS verification is still a demo.** No text message is sent; the code is always `123456`. Renters are never submitted.
+> **Frontend demo only.** Nothing you enter leaves the browser. There is no lead submission, SMS, webhook, TrustedForm, Google Maps key or any other credential. Answers live in React state and are cleared on refresh. The only third-party script is the Meta Pixel (see below).
 
 ## Requirements
 
@@ -40,7 +40,7 @@ Open http://localhost:3000.
    - **No** / **Solar Hot Water** skip straight to the bill question.
 4. Quarterly bill, home age, roof type and roof shading.
 5. Address (street, suburb/city, postcode; the postcode is pre-filled from step 1), then first and last name, then email and an Australian mobile number starting with `04`.
-6. **Demo verification**: no text message is sent. Enter **`123456`** and choose **See If I Qualify**. The lead is posted to the webhook; the success screen only appears once it is accepted, and it summarises the answers from the active path only. If delivery fails, an error is shown and the visitor can try again.
+6. **Demo verification**: no text message is sent. Enter **`123456`** and choose **See If I Qualify** to reach the success screen. It summarises the answers from the active path only.
 
 Behaviour notes:
 
@@ -72,19 +72,9 @@ tests/                Vitest unit and integration tests
 docs/reference/       Source screenshots used for visual matching
 ```
 
-## Lead webhook
-
-When a homeowner completes verification, `components/survey/Survey.tsx` posts the answers to `app/api/lead/route.ts`. The route re-validates them on the server, builds a flat record (`lib/lead.ts`) and forwards it as JSON to the Make webhook. The webhook URL never reaches the browser.
-
-- Default URL: `https://hook.eu1.make.com/tds511csbujm4nrdfxvtntlgxpfidfjr`, the webhook of the Make scenario **81 - Elecsol Electrical - Website Leads**, which appends each lead to the "81 - Elecsol Electrical - Website Leads" Google Sheet tab. Override it with the `MAKE_WEBHOOK_URL` environment variable.
-- Only answers on the active path are sent; abandoned branches and the verification code are dropped. The mobile is normalised to `04XXXXXXXX`.
-- Fields match that scenario's webhook structure: `submissionId`, `submittedAt`, `postcode`, `homeowner`, `existingSolar`, `systemAge`, `reason`, `bill`, `homeAge`, `roofType`, `shading`, `street`, `suburb`, `addressPostcode`, `firstName`, `lastName`, `email`, `mobile`, `pageUrl`, `source` (the `utm_source`, or `website`). Extra fields `utmSource`, `utmMedium`, `utmCampaign`, `utmContent`, `utmTerm` and `fbclid` are also sent. Empty answers are sent as `""`.
-- The scenario ignores requests without a `submissionId` and skips any `submissionId` already in the sheet, so retries never create duplicate rows.
-- The route returns `200` when Make accepts the lead, `400`/`422` for malformed or incomplete surveys, and `502` if Make fails or takes longer than 10 seconds.
-
 ## Meta Pixel
 
-`components/MetaPixel.tsx` loads the Meta Pixel base code in the root layout and fires the standard `PageView` on every load. Once the webhook has accepted a lead, `components/survey/Survey.tsx` calls `trackPixelEvent("Lead")` from `lib/pixel.ts`, which fires the standard `Lead` event with an `eventID` equal to the webhook's `submissionId`, so it can be deduplicated against a later Conversions API event. The helper is a no-op if the pixel is blocked or not loaded. The pixel ID lives in `lib/site.ts` as `metaPixelId`; set it to an empty string to disable the pixel entirely.
+`components/MetaPixel.tsx` loads the Meta Pixel base code in the root layout and fires the standard `PageView` on every load. When the survey reaches the success screen, `components/survey/Survey.tsx` calls `trackPixelEvent("Lead")` from `lib/pixel.ts`, which fires the standard `Lead` event. The helper is a no-op if the pixel is blocked or not loaded. The pixel ID lives in `lib/site.ts` as `metaPixelId`; set it to an empty string to disable the pixel entirely.
 
 To change the demo code, edit `DEMO_OTP` in `lib/survey.ts`. To change the brand name, contact email or the Privacy, Terms and energy assistance links, edit `lib/site.ts`. Brand colours are CSS variables at the top of `app/globals.css` (`--color-accent` is the yellow).
 
@@ -92,7 +82,7 @@ To change the demo code, edit `DEMO_OTP` in `lib/survey.ts`. To change the brand
 
 1. Push the repository to GitHub.
 2. In Vercel, choose **Add New → Project** and import the repository. The Next.js preset is detected automatically; the defaults `npm install` / `npm run build` are correct.
-3. Deploy. No environment variables are required; optionally set `MAKE_WEBHOOK_URL` to send leads to a different Make scenario.
+3. Deploy. No environment variables are required.
 
 Or with the CLI:
 
@@ -101,7 +91,7 @@ npx vercel        # preview
 npx vercel --prod # production
 ```
 
-The page is statically prerendered; `/api/lead` runs as a serverless function, so the site cannot be deployed as a pure static export. `next.config.ts` adds basic security headers. `robots` is set to `noindex` because this is a demo build; remove that from `app/layout.tsx` for a real launch.
+The page is statically prerendered. `next.config.ts` adds basic security headers. `robots` is set to `noindex` because this is a demo build; remove that from `app/layout.tsx` for a real launch.
 
 ## Accessibility
 

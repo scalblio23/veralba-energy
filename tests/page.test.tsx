@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ImgHTMLAttributes } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Survey, AUTO_ADVANCE_DELAY_MS } from "@/components/survey/Survey";
 import { WhyUseUs } from "@/components/WhyUseUs";
 import { trackPixelEvent } from "@/lib/pixel";
@@ -24,15 +24,8 @@ function heading() {
 }
 
 describe("Survey", () => {
-  let fetchSpy: MockInstance<typeof fetch>;
-
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ ok: true }));
-  });
-
-  afterEach(() => {
-    fetchSpy.mockRestore();
   });
 
   const user = () => userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
@@ -183,7 +176,6 @@ describe("Survey", () => {
     await user().type(code, "123456");
     await user().click(qualify);
 
-    expect(await screen.findByText(/Thanks, Alex!/)).toBeInTheDocument();
     expect(heading()).toHaveTextContent("Thanks, Alex! Your eligibility request is ready.");
     expect(progressValue()).toBe(100);
     const summary = screen.getByRole("heading", { name: "Your answers" }).parentElement as HTMLElement;
@@ -196,6 +188,7 @@ describe("Survey", () => {
   });
 
   it("completes the no-solar path without the existing system questions", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
     const fbq = vi.fn();
     window.fbq = fbq;
     try {
@@ -205,56 +198,16 @@ describe("Survey", () => {
       await user().type(screen.getByLabelText("Mobile phone number"), "0412 345 678{Enter}");
       expect(progressValue()).toBe(91);
       expect(fbq).not.toHaveBeenCalled();
-      expect(fetchSpy).not.toHaveBeenCalled();
       await user().type(screen.getByLabelText("6-digit verification code"), "123456{Enter}");
 
-      expect(await screen.findByText(/Your eligibility request is ready/)).toBeInTheDocument();
+      expect(heading()).toHaveTextContent("Your eligibility request is ready.");
       expect(screen.queryByText("Existing system age")).not.toBeInTheDocument();
       expect(screen.queryByText("Reason for enquiry")).not.toBeInTheDocument();
+      expect(fetchSpy).not.toHaveBeenCalled();
 
-      // The completed survey is posted to the lead API exactly once.
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-      const [url, init] = fetchSpy.mock.calls[0]!;
-      expect(url).toBe("/api/lead");
-      const body = JSON.parse(String(init?.body));
-      expect(body.answers).toMatchObject({
-        postcode: "2000",
-        homeowner: "Own",
-        existingSolar: "No",
-        firstName: "Alex",
-        email: "alex@example.com",
-        mobile: "0412 345 678",
-      });
-
-      // The Meta Pixel Lead event fires once, after delivery, sharing the lead's event id.
+      // The Meta Pixel Lead event fires exactly once when the survey is completed.
       expect(fbq).toHaveBeenCalledTimes(1);
-      expect(fbq).toHaveBeenCalledWith("track", "Lead", {}, { eventID: body.eventId });
-    } finally {
-      delete window.fbq;
-    }
-  });
-
-  it("stays on verification and does not fire Lead when delivery fails", async () => {
-    fetchSpy.mockResolvedValue(Response.json({ ok: false }, { status: 502 }));
-    const fbq = vi.fn();
-    window.fbq = fbq;
-    try {
-      render(<Survey />);
-      await completeToContact("No");
-      await user().type(screen.getByLabelText("Best email address"), "alex@example.com");
-      await user().type(screen.getByLabelText("Mobile phone number"), "0412 345 678{Enter}");
-      await user().type(screen.getByLabelText("6-digit verification code"), "123456{Enter}");
-
-      expect(await screen.findByRole("alert")).toHaveTextContent(/couldn't send your details/);
-      expect(screen.getByLabelText("6-digit verification code")).toBeInTheDocument();
-      expect(fbq).not.toHaveBeenCalled();
-
-      // Retrying succeeds once the webhook recovers.
-      fetchSpy.mockResolvedValue(Response.json({ ok: true }));
-      await user().click(screen.getByRole("button", { name: "See If I Qualify" }));
-      expect(await screen.findByText(/Your eligibility request is ready/)).toBeInTheDocument();
-      expect(fetchSpy).toHaveBeenCalledTimes(2);
-      expect(fbq).toHaveBeenCalledTimes(1);
+      expect(fbq).toHaveBeenCalledWith("track", "Lead", undefined);
     } finally {
       delete window.fbq;
     }
