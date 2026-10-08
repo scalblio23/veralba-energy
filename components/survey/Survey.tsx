@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useReducer, useRef, type FormEvent } from "react";
 import {
   FIRST_STEP,
   STEPS,
@@ -15,7 +15,6 @@ import {
   type FieldErrors,
   type StepId,
 } from "@/lib/survey";
-import { readAttribution, type LeadRequest } from "@/lib/lead";
 import { trackPixelEvent } from "@/lib/pixel";
 import { ChoiceQuestion } from "./ChoiceQuestion";
 import { FieldQuestion } from "./FieldQuestion";
@@ -75,33 +74,6 @@ function reducer(state: SurveyState, action: SurveyAction): SurveyState {
   }
 }
 
-const SUBMIT_ERROR = "Sorry, we couldn't send your details. Please check your connection and try again.";
-
-function createEventId() {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
-
-/** Send the completed survey to `/api/lead`, which forwards it to the Make webhook. */
-async function submitLead(answers: Answers, eventId: string): Promise<boolean> {
-  const body: LeadRequest = {
-    answers,
-    eventId,
-    pageUrl: window.location.href,
-    attribution: readAttribution(window.location.search),
-  };
-  try {
-    const response = await fetch("/api/lead", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
 function fieldId(key: AnswerKey) {
   return `survey-${key}`;
 }
@@ -115,9 +87,6 @@ export function Survey() {
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingFocus = useRef<string | null>(null);
   const previousStep = useRef<StepId>(step);
-  const leadEventId = useRef<string | null>(null);
-  const [isSubmitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const definition = STEPS[step];
   const progress = getProgress(step, answers);
@@ -151,11 +120,9 @@ export function Survey() {
     }
   }, [step]);
 
-  // Report a delivered lead to the Meta Pixel as a standard Lead event.
+  // Report a completed survey to the Meta Pixel as a standard Lead event.
   useEffect(() => {
-    if (step === "success" && leadEventId.current) {
-      trackPixelEvent("Lead", undefined, { eventID: leadEventId.current });
-    }
+    if (step === "success") trackPixelEvent("Lead");
   }, [step]);
 
   // Focus the first invalid control after validation errors render.
@@ -186,31 +153,11 @@ export function Survey() {
       dispatch({ type: "errors", errors: stepErrors });
       return;
     }
-
-    // The lead is only complete once the webhook has accepted it.
-    if (step === "verify") {
-      if (isSubmitting) return;
-      const eventId = createEventId();
-      setSubmitting(true);
-      setSubmitError(null);
-      void submitLead(answers, eventId).then((delivered) => {
-        setSubmitting(false);
-        if (delivered) {
-          leadEventId.current = eventId;
-          dispatch({ type: "advance", from: "verify" });
-        } else {
-          setSubmitError(SUBMIT_ERROR);
-        }
-      });
-      return;
-    }
-
     dispatch({ type: "advance", from: step });
-  }, [answers, cancelAdvance, isSubmitting, step]);
+  }, [answers, cancelAdvance, step]);
 
   const goBack = useCallback(() => {
     cancelAdvance();
-    setSubmitError(null);
     dispatch({ type: "back" });
   }, [cancelAdvance]);
 
@@ -229,8 +176,6 @@ export function Survey() {
 
   const restart = useCallback(() => {
     cancelAdvance();
-    leadEventId.current = null;
-    setSubmitError(null);
     dispatch({ type: "restart" });
   }, [cancelAdvance]);
 
@@ -295,8 +240,6 @@ export function Survey() {
                 mobile={answers.mobile ?? ""}
                 code={answers.otp ?? ""}
                 error={errors.otp}
-                submitError={submitError}
-                isSubmitting={isSubmitting}
                 inputId={fieldId("otp")}
                 onChange={(value) => setAnswer("otp", value)}
               />
@@ -316,7 +259,7 @@ export function Survey() {
                 </button>
               )}
               {canGoBack && (
-                <button type="button" className={styles.previousButton} onClick={goBack} disabled={isSubmitting}>
+                <button type="button" className={styles.previousButton} onClick={goBack}>
                   Previous
                 </button>
               )}
