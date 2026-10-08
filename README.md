@@ -80,7 +80,7 @@ When a visitor reaches the success screen, `components/survey/Survey.tsx` calls 
 
 `app/api/lead/route.ts` keeps only the known fields, requires `submissionId`, `firstName`, `email` and `mobile`, and forwards the lead to Make. The browser never sees the webhook URL, and a failed submission never breaks the success screen.
 
-On the Make side, the scenario **77 - Veralba Solar - Website Leads** receives the webhook, skips any `submissionId` already in column U, and appends a row to the **77 - Veralba Solar** tab of the **CLIENT LEAD LIST - Tracker** Google Sheet. Columns: date received, postcode, home ownership, existing solar, system age, reason, quarterly bill, home age, roof type, shading, street, suburb, address postcode, first name, last name, email, mobile, page URL, submitted at (UTC), source, submission ID, stage and notes.
+On the Make side, the scenario **81 - Elecsol Electrical - Website Leads** receives the webhook, skips any `submissionId` already in column U, and appends a row to the **81 - Elecsol Electrical - Website Leads** tab of the **CLIENT LEAD LIST - Tracker** Google Sheet. Columns: date received, postcode, home ownership, existing solar, system age, reason, quarterly bill, home age, roof type, shading, street, suburb, address postcode, first name, last name, email, mobile, page URL, submitted at (UTC), source, submission ID, stage and notes.
 
 The webhook URL is built in to the route. To send leads somewhere else, set the `MAKE_WEBHOOK_URL` environment variable in Vercel.
 
