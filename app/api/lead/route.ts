@@ -1,11 +1,11 @@
 import { sanitiseLead } from "@/lib/lead";
 
 /**
- * Make webhook for "77 - Veralba Solar - Website Leads", which appends each
- * lead to the "77 - Veralba Solar" tab of the client lead list. Set
+ * Make webhook for "81 - Elecsol Electrical - Website Leads", which appends each
+ * lead to the "81 - Elecsol Electrical - Website Leads" tab of the client lead list. Set
  * MAKE_WEBHOOK_URL to point a deployment somewhere else.
  */
-const DEFAULT_WEBHOOK_URL = "https://hook.eu1.make.com/evhj3jrjbnbokqn1cwd4g3gkclbv9660";
+const DEFAULT_WEBHOOK_URL = "https://hook.eu1.make.com/tds511csbujm4nrdfxvtntlgxpfidfjr";
 
 export async function POST(request: Request) {
   let body: unknown;

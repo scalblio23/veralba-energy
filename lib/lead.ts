@@ -1,6 +1,6 @@
 /**
  * Lead submission. A completed survey is posted to our own `/api/lead` route,
- * which forwards it to the Make webhook that writes the "77 - Veralba Solar"
+ * which forwards it to the Make webhook that writes the "81 - Elecsol Electrical - Website Leads"
  * tab of the client lead list.
  */
 
