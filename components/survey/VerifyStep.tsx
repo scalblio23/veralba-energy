@@ -6,11 +6,14 @@ interface VerifyStepProps {
   mobile: string;
   code: string;
   error: string | undefined;
+  /** Shown when the completed lead could not be delivered. */
+  submitError: string | null;
+  isSubmitting: boolean;
   inputId: string;
   onChange: (value: string) => void;
 }
 
-export function VerifyStep({ mobile, code, error, inputId, onChange }: VerifyStepProps) {
+export function VerifyStep({ mobile, code, error, submitError, isSubmitting, inputId, onChange }: VerifyStepProps) {
   const noteId = `${inputId}-note`;
   const errorId = `${inputId}-error`;
 
@@ -54,9 +57,18 @@ export function VerifyStep({ mobile, code, error, inputId, onChange }: VerifySte
         )}
       </div>
 
-      <button type="submit" className={`${styles.qualifyButton} ${code.length === 6 ? "" : styles.inactive}`}>
-        See If I Qualify
+      <button
+        type="submit"
+        className={`${styles.qualifyButton} ${code.length === 6 && !isSubmitting ? "" : styles.inactive}`}
+        aria-disabled={isSubmitting || undefined}
+      >
+        {isSubmitting ? "Sending…" : "See If I Qualify"}
       </button>
+      {submitError && (
+        <p className={styles.error} role="alert">
+          {submitError}
+        </p>
+      )}
 
       <p className={styles.consent}>
         By clicking the above I understand and accept {site.name}&apos;s{" "}

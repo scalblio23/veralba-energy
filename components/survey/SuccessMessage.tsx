@@ -39,13 +39,12 @@ export function SuccessMessage({ answers, onRestart }: SuccessMessageProps) {
         <circle cx="32" cy="32" r="30" fill="#ffe600" />
         <path d="M19 33.5 28 42l17-19" fill="none" stroke="#000033" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <p className={styles.demoBadge}>Demo complete · Nothing was submitted</p>
       <h2 className={styles.questionTitle} tabIndex={-1} data-step-heading>
         Thanks{firstName ? `, ${firstName}` : ""}! <strong>Your eligibility request is ready.</strong>
       </h2>
       <p className={styles.questionDescription}>
-        In the live service, an SAA Accredited solar expert would now review your answers and contact you about
-        Government solar incentives and No Net Cost Solar options for your home.
+        An SAA Accredited solar expert will review your answers and contact you about Government solar incentives
+        and No Net Cost Solar options for your home.
       </p>
 
       <div className={styles.summary}>
@@ -61,8 +60,11 @@ export function SuccessMessage({ answers, onRestart }: SuccessMessageProps) {
       </div>
 
       <p className={styles.privacyNote}>
-        Your details stayed in this browser tab. They have not been sent to {site.name}, installers or any other
-        service, and they are cleared when you refresh or leave the page.
+        Your details have been sent to {site.name}. We handle them in line with our{" "}
+        <a href={site.privacyPolicyUrl} target="_blank" rel="noopener noreferrer">
+          Privacy Policy
+        </a>
+        .
       </p>
 
       <button type="button" className={styles.nextButton} onClick={onRestart}>
