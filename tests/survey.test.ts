@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  DEMO_OTP,
   formatMobile,
   getActiveAnswers,
   getNextStep,
@@ -25,7 +24,6 @@ const noSolarPath = [
   "address",
   "name",
   "contact",
-  "verify",
   "success",
 ];
 
@@ -60,7 +58,7 @@ describe("survey branching", () => {
     expect(getPreviousStep("renter", { homeowner: "Rent" })).toBe("homeowner");
     expect(getPreviousStep("bill", { homeowner: "Own", existingSolar: "Yes" })).toBe("reason");
     expect(getPreviousStep("bill", { homeowner: "Own", existingSolar: "No" })).toBe("existingSolar");
-    expect(getPreviousStep("success", { homeowner: "Own" })).toBe("verify");
+    expect(getPreviousStep("success", { homeowner: "Own" })).toBe("contact");
   });
 
   it("drops answers from abandoned branches", () => {
@@ -83,13 +81,13 @@ describe("survey branching", () => {
 
 describe("progress", () => {
   it("starts at zero and counts questions on the default path", () => {
-    expect(getProgress("postcode", {})).toEqual({ current: 1, total: 11, percent: 0 });
+    expect(getProgress("postcode", {})).toEqual({ current: 1, total: 10, percent: 0 });
   });
 
   it("grows the total when the existing solar branch is chosen", () => {
     const answers: Answers = { homeowner: "Own", existingSolar: "Yes" };
-    expect(getProgress("systemAge", answers)).toEqual({ current: 4, total: 13, percent: 23 });
-    expect(getProgress("verify", answers)).toEqual({ current: 13, total: 13, percent: 92 });
+    expect(getProgress("systemAge", answers)).toEqual({ current: 4, total: 12, percent: 25 });
+    expect(getProgress("contact", answers)).toEqual({ current: 12, total: 12, percent: 92 });
   });
 
   it("is monotonic along every path and completes on terminal screens", () => {
@@ -144,13 +142,5 @@ describe("validation", () => {
     expect(validateField("mobile", "0312345678")).toMatch(/starting with 04/);
     expect(normaliseMobile("+61 412-345-678")).toBe("0412345678");
     expect(formatMobile("0412345678")).toBe("0412 345 678");
-  });
-
-  it("only accepts the documented demo code", () => {
-    expect(DEMO_OTP).toBe("123456");
-    expect(validateField("otp", "")).toMatch(/6-digit/);
-    expect(validateField("otp", "123")).toMatch(/must be 6 digits/);
-    expect(validateField("otp", "654321")).toMatch(/incorrect/);
-    expect(validateField("otp", DEMO_OTP)).toBeUndefined();
   });
 });

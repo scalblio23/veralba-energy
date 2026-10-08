@@ -361,7 +361,7 @@
   text-decoration: underline;
 }
 
-/* Message, verification and success screens */
+/* Message and success screens */
 .message {
   max-width: 720px;
   margin: 0 auto;
@@ -379,57 +379,16 @@
   color: var(--color-navy);
 }
 
-.demoBadge {
-  display: inline-block;
-  margin: 0 0 16px;
-  padding: 4px 12px;
-  border: 1px solid var(--color-navy);
-  border-radius: 999px;
-  background: #ffffff;
-  color: var(--color-navy);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
 
-.phoneNumber {
-  display: block;
-  margin-block: 4px;
-}
 
-.codeSection {
-  margin: 20px 0 30px;
-}
 
-.codeInput {
-  width: 200px;
-  height: auto;
-  padding: 10px;
-  font-size: 20px;
-  font-weight: 400;
-  letter-spacing: 0.3em;
-}
 
-.qualifyButton {
-  margin-bottom: 20px;
-  padding: 10px 20px;
-  border: 0;
-  border-radius: 0;
-  background: var(--color-accent);
-  color: var(--color-navy);
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-}
 
-.qualifyButton:hover {
-  background: #f2d900;
-}
 
 .consent {
   max-width: 640px;
-  margin: 0 auto 10px;
+  margin: 20px auto 10px;
+  text-align: center;
   font-size: 14px;
   font-weight: 300;
   opacity: 0.9;
@@ -481,12 +440,6 @@
   overflow-wrap: anywhere;
 }
 
-.privacyNote {
-  max-width: 560px;
-  margin: 0 auto 10px;
-  font-size: 13px;
-  font-weight: 300;
-}
 
 /* Mobile */
 @media (max-width: 749px) {
