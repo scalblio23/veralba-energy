@@ -35,33 +35,40 @@ export interface LeadRequest {
   attribution?: Attribution;
 }
 
-/** Flat record posted to the Make webhook. */
+/**
+ * Flat record posted to the Make webhook. Field names match the webhook
+ * structure of the "77 - Veralba Solar - Website Leads" scenario, which
+ * drops any request without a `submissionId`.
+ */
 export interface LeadPayload {
-  event_id: string;
-  submitted_at: string;
+  /** Unique per lead; Make uses it to skip duplicate rows. Same as the Pixel eventID. */
+  submissionId: string;
+  submittedAt: string;
   postcode: string;
   homeowner: string;
-  existing_solar: string;
-  system_age: string;
+  existingSolar: string;
+  systemAge: string;
   reason: string;
-  quarterly_bill: string;
-  home_age: string;
-  roof_type: string;
-  roof_shading: string;
+  bill: string;
+  homeAge: string;
+  roofType: string;
+  shading: string;
   street: string;
   suburb: string;
-  address_postcode: string;
-  first_name: string;
-  last_name: string;
+  addressPostcode: string;
+  firstName: string;
+  lastName: string;
   email: string;
   /** Normalised to `04XXXXXXXX`. */
   mobile: string;
-  page_url: string;
-  utm_source: string;
-  utm_medium: string;
-  utm_campaign: string;
-  utm_content: string;
-  utm_term: string;
+  pageUrl: string;
+  /** `utm_source` when present, otherwise `website`. */
+  source: string;
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
+  utmContent: string;
+  utmTerm: string;
   fbclid: string;
 }
 
@@ -95,30 +102,31 @@ export function buildLeadPayload(request: LeadRequest, submittedAt: Date): LeadP
   const a = getActiveAnswers(request.answers);
   const attribution = request.attribution ?? {};
   return {
-    event_id: clean(request.eventId, 100),
-    submitted_at: submittedAt.toISOString(),
+    submissionId: clean(request.eventId, 100),
+    submittedAt: submittedAt.toISOString(),
     postcode: clean(a.postcode),
     homeowner: clean(a.homeowner),
-    existing_solar: clean(a.existingSolar),
-    system_age: clean(a.systemAge),
+    existingSolar: clean(a.existingSolar),
+    systemAge: clean(a.systemAge),
     reason: clean(a.reason),
-    quarterly_bill: clean(a.bill),
-    home_age: clean(a.homeAge),
-    roof_type: clean(a.roofType),
-    roof_shading: clean(a.shading),
+    bill: clean(a.bill),
+    homeAge: clean(a.homeAge),
+    roofType: clean(a.roofType),
+    shading: clean(a.shading),
     street: clean(a.street),
     suburb: clean(a.suburb),
-    address_postcode: clean(a.addressPostcode),
-    first_name: clean(a.firstName),
-    last_name: clean(a.lastName),
+    addressPostcode: clean(a.addressPostcode),
+    firstName: clean(a.firstName),
+    lastName: clean(a.lastName),
     email: clean(a.email),
     mobile: normaliseMobile(clean(a.mobile)),
-    page_url: clean(request.pageUrl, 2000),
-    utm_source: clean(attribution.utm_source),
-    utm_medium: clean(attribution.utm_medium),
-    utm_campaign: clean(attribution.utm_campaign),
-    utm_content: clean(attribution.utm_content),
-    utm_term: clean(attribution.utm_term),
+    pageUrl: clean(request.pageUrl, 2000),
+    source: clean(attribution.utm_source) || "website",
+    utmSource: clean(attribution.utm_source),
+    utmMedium: clean(attribution.utm_medium),
+    utmCampaign: clean(attribution.utm_campaign),
+    utmContent: clean(attribution.utm_content),
+    utmTerm: clean(attribution.utm_term),
     fbclid: clean(attribution.fbclid, 500),
   };
 }
