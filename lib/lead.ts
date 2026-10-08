@@ -37,7 +37,7 @@ export interface LeadRequest {
 
 /**
  * Flat record posted to the Make webhook. Field names match the webhook
- * structure of the "77 - Veralba Solar - Website Leads" scenario, which
+ * structure of the "81 - Elecsol Electrical - Website Leads" scenario, which
  * drops any request without a `submissionId`.
  */
 export interface LeadPayload {
