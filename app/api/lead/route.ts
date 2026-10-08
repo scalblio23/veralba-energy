@@ -1,7 +1,10 @@
 import { buildLeadPayload, validateLeadAnswers, type LeadRequest } from "@/lib/lead";
 
-/** Make scenario that receives completed survey leads. Override with `MAKE_WEBHOOK_URL`. */
-const DEFAULT_WEBHOOK_URL = "https://hook.eu1.make.com/tds511csbujm4nrdfxvtntlgxpfidfjr";
+/**
+ * Webhook of the Make scenario "77 - Veralba Solar - Website Leads", which adds
+ * each lead to the "77 - Veralba Solar" Google Sheet. Override with `MAKE_WEBHOOK_URL`.
+ */
+const DEFAULT_WEBHOOK_URL = "https://hook.eu1.make.com/evhj3jrjbnbokqn1cwd4g3gkclbv9660";
 
 const WEBHOOK_TIMEOUT_MS = 10_000;
 
@@ -23,6 +26,10 @@ export async function POST(request: Request) {
 
   if (!body || typeof body !== "object" || !body.answers || typeof body.answers !== "object") {
     return json(400, { ok: false, error: "Missing answers." });
+  }
+
+  if (typeof body.eventId !== "string" || !body.eventId.trim()) {
+    return json(400, { ok: false, error: "Missing eventId." });
   }
 
   const invalid = validateLeadAnswers(body.answers);

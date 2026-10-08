@@ -40,23 +40,27 @@ describe("lead payload", () => {
       new Date("2026-10-08T00:00:00Z"),
     );
     expect(payload).toMatchObject({
-      event_id: "evt-1",
-      submitted_at: "2026-10-08T00:00:00.000Z",
-      existing_solar: "Yes",
-      system_age: "More than 5 years",
+      submissionId: "evt-1",
+      submittedAt: "2026-10-08T00:00:00.000Z",
+      existingSolar: "Yes",
+      systemAge: "More than 5 years",
       reason: "Adding A Battery",
-      first_name: "Alex",
+      bill: "$600 - $900",
+      firstName: "Alex",
       mobile: "0412345678",
-      utm_source: "fb",
-      utm_campaign: "",
+      pageUrl: "https://example.com/?utm_source=fb",
+      source: "fb",
+      utmSource: "fb",
+      utmCampaign: "",
     });
     expect(payload).not.toHaveProperty("otp");
   });
 
   it("drops answers from an abandoned branch", () => {
     const payload = buildLeadPayload({ answers: { ...completeAnswers, existingSolar: "No" }, eventId: "e" }, new Date());
-    expect(payload.system_age).toBe("");
+    expect(payload.systemAge).toBe("");
     expect(payload.reason).toBe("");
+    expect(payload.source).toBe("website");
   });
 
   it("rejects renters and incomplete surveys", () => {
@@ -94,9 +98,9 @@ describe("POST /api/lead", () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const [url, init] = fetchSpy.mock.calls[0]!;
-    expect(url).toBe("https://hook.eu1.make.com/tds511csbujm4nrdfxvtntlgxpfidfjr");
+    expect(url).toBe("https://hook.eu1.make.com/evhj3jrjbnbokqn1cwd4g3gkclbv9660");
     expect(init?.method).toBe("POST");
-    expect(JSON.parse(String(init?.body))).toMatchObject({ event_id: "evt-1", email: "alex@example.com" });
+    expect(JSON.parse(String(init?.body))).toMatchObject({ submissionId: "evt-1", email: "alex@example.com" });
   });
 
   it("uses MAKE_WEBHOOK_URL when set", async () => {
@@ -108,6 +112,7 @@ describe("POST /api/lead", () => {
   it("rejects malformed and incomplete requests without calling the webhook", async () => {
     expect((await post("not json")).status).toBe(400);
     expect((await post({})).status).toBe(400);
+    expect((await post({ answers: completeAnswers })).status).toBe(400);
     expect((await post({ answers: { ...completeAnswers, homeowner: "Rent" }, eventId: "e" })).status).toBe(422);
     expect(fetchSpy).not.toHaveBeenCalled();
   });

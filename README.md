@@ -76,14 +76,15 @@ docs/reference/       Source screenshots used for visual matching
 
 When a homeowner completes verification, `components/survey/Survey.tsx` posts the answers to `app/api/lead/route.ts`. The route re-validates them on the server, builds a flat record (`lib/lead.ts`) and forwards it as JSON to the Make webhook. The webhook URL never reaches the browser.
 
-- Default URL: `https://hook.eu1.make.com/tds511csbujm4nrdfxvtntlgxpfidfjr`. Override it with the `MAKE_WEBHOOK_URL` environment variable.
+- Default URL: `https://hook.eu1.make.com/evhj3jrjbnbokqn1cwd4g3gkclbv9660`, the webhook of the Make scenario **77 - Veralba Solar - Website Leads**, which appends each lead to the "77 - Veralba Solar" Google Sheet. Override it with the `MAKE_WEBHOOK_URL` environment variable.
 - Only answers on the active path are sent; abandoned branches and the verification code are dropped. The mobile is normalised to `04XXXXXXXX`.
-- Fields: `event_id`, `submitted_at`, `postcode`, `homeowner`, `existing_solar`, `system_age`, `reason`, `quarterly_bill`, `home_age`, `roof_type`, `roof_shading`, `street`, `suburb`, `address_postcode`, `first_name`, `last_name`, `email`, `mobile`, `page_url`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `fbclid`. Empty answers are sent as `""`.
+- Fields match that scenario's webhook structure: `submissionId`, `submittedAt`, `postcode`, `homeowner`, `existingSolar`, `systemAge`, `reason`, `bill`, `homeAge`, `roofType`, `shading`, `street`, `suburb`, `addressPostcode`, `firstName`, `lastName`, `email`, `mobile`, `pageUrl`, `source` (the `utm_source`, or `website`). Extra fields `utmSource`, `utmMedium`, `utmCampaign`, `utmContent`, `utmTerm` and `fbclid` are also sent. Empty answers are sent as `""`.
+- The scenario ignores requests without a `submissionId` and skips any `submissionId` already in the sheet, so retries never create duplicate rows.
 - The route returns `200` when Make accepts the lead, `400`/`422` for malformed or incomplete surveys, and `502` if Make fails or takes longer than 10 seconds.
 
 ## Meta Pixel
 
-`components/MetaPixel.tsx` loads the Meta Pixel base code in the root layout and fires the standard `PageView` on every load. Once the webhook has accepted a lead, `components/survey/Survey.tsx` calls `trackPixelEvent("Lead")` from `lib/pixel.ts`, which fires the standard `Lead` event with an `eventID` equal to the webhook's `event_id`, so it can be deduplicated against a later Conversions API event. The helper is a no-op if the pixel is blocked or not loaded. The pixel ID lives in `lib/site.ts` as `metaPixelId`; set it to an empty string to disable the pixel entirely.
+`components/MetaPixel.tsx` loads the Meta Pixel base code in the root layout and fires the standard `PageView` on every load. Once the webhook has accepted a lead, `components/survey/Survey.tsx` calls `trackPixelEvent("Lead")` from `lib/pixel.ts`, which fires the standard `Lead` event with an `eventID` equal to the webhook's `submissionId`, so it can be deduplicated against a later Conversions API event. The helper is a no-op if the pixel is blocked or not loaded. The pixel ID lives in `lib/site.ts` as `metaPixelId`; set it to an empty string to disable the pixel entirely.
 
 To change the demo code, edit `DEMO_OTP` in `lib/survey.ts`. To change the brand name, contact email or the Privacy, Terms and energy assistance links, edit `lib/site.ts`. Brand colours are CSS variables at the top of `app/globals.css` (`--color-accent` is the yellow).
 
